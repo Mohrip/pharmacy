@@ -1,53 +1,53 @@
+<?php
+session_start();
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-   
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
-    <link rel ="stylesheet" type= "text/css" href="css/style2.css">
-</head>
-<body>
-    <div class="d-flex justify-content-center align-items-center vh-100">
-        
+if ( isset( $_POST['uname'] ) &&  ( isset( $_POST['pass'] ) ) ) {
 
+   include "../db_conn.php";
 
-    <form 
-        class="shadow w-450 p-3" 
-        action="php/login.php" 
-        method="post">
+   $uname = $_POST['uname'];
+   $pass  = $_POST['pass'];
+   $data = "&uname=".$uname ;
 
-    <h4 class="display-4  fs-1">Login</h4><br>
-      
-    <?php if(isset($_GET['error'])){ ?>
-        <div class="alert alert-danger" role="alert">
-            <?php echo $_GET['error']; ?>
-        </div>    
-        <?php } ?>
+ //nested if   
+   if (empty($uname)){
+      $em = "User name is required";
+      header("Location: ../login.php?error=$em&$data");
+      exit;
+      }
 
-       
-     
+   else 
+      if (empty($pass)){
+         $em = "Password is required";
+         header("Location: ../login.php?error=$em&$data");
+         exit; 
+         } 
+      else {
+         $result = mysqli_query($conn,"SELECT * FROM  doctor WHERE email = '$uname' and password='$pass'");
+         $result2 = mysqli_query($conn,"SELECT * FROM patient WHERE email = '$uname' and password='$pass'");
+         $row = mysqli_fetch_array($result);
+         $count = mysqli_num_rows($result);
+         $row2 = mysqli_fetch_array($result2);
+         $count2 = mysqli_num_rows($result2);
 
-        <div class="mb-3">
-            <label  class="form-label">Email</label>
-            <input type="text"
-            class="form-control" 
-            name="uname"
-            value="<?php if(!empty($_GET['uname'])) echo $_GET['uname']; ?>">
-            
-            
-        </div>
+         
+         if($count == 0 && $count2 == 0) {
+            $em = "Incorrect User name or password";
+            header("Location: ../login.php?error=$em&$data");
+            exit;
+            } 
+         else if ($count != 0) {
+            session_start();
+            $_SESSION['id'] = $row['id'];
+            $_SESSION['fname'] =$row['fname']; 
+            header("location:../index.php");
+      }
+      else {
+         session_start();
+         $_SESSION['id'] = $row2['id'];
+         $_SESSION['fname'] =$row2['fname']; 
+         header("location:../index.php");
+      }
+   }
+}
 
-        <div class="mb-3">
-            <label  class="form-label">Password</label>
-            <input type="password" class="form-control"  name="pass" >
-        </div>
-
-        <button type="submit" class="btn btn-primary">Login</button>
-        <a href="register.php" class="link-secondary">Sign Up</a>
-        </form>
-    </div>
-</body>
-</html>
